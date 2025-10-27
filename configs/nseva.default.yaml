@@ -17,23 +17,101 @@ futures:
       revised_weekday: Tuesday
       effective_eod: 2025-08-28
   sources:
-    udiff_fo:
-      url_pattern: "https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_{YYYY}{MM}{DD}_F_0000.csv.zip"
-      rate_limit_seconds: 0.6
-      retries: 3
-      timeout_seconds: 30
-      column_aliases:
-        value_lakhs:
-          - VAL_INLAKH
-          - VAL_IN_LAKH
-        open_interest_contracts:
-          - OPEN_INT
-          - OPENINT
-    mwpl_combined:
-      discovery: reports_index|pattern
-      rate_limit_seconds: 0.6
-      retries: 3
-      timeout_seconds: 30
+    registry:
+      udiff_fo:
+        identifier: udiff_fo
+        strategy: url_pattern
+        cache_subdir: raw/fo_udiff
+        url_pattern: "https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_{YYYY}{MM}{DD}_F_0000.csv.zip"
+        rate_limit_seconds: 0.6
+        retries: 3
+        timeout_seconds: 30
+        hashing:
+          enabled: true
+          algorithm: sha256
+          manifest_extension: .sha256
+        quarantine_on_unexpected_columns: true
+        column_aliases:
+          trade_date:
+            - TRD_DT
+            - TRADE_DATE
+            - TIMESTAMP
+          instrument:
+            - INSTRUMENT
+          symbol:
+            - SYMBOL
+          expiry_date:
+            - EXPIRY_DATE
+            - EXPIRY_DT
+            - EXPIRY
+          open:
+            - OPEN
+            - OPEN_PRICE
+          high:
+            - HIGH
+            - HIGH_PRICE
+          low:
+            - LOW
+            - LOW_PRICE
+          close:
+            - CLOSE
+            - CLOSE_PRICE
+          settle_price:
+            - SETTLE_PRICE
+            - SETTLE_PR
+            - SETTL_PRICE
+            - SETT_PR
+            - SETL_PR
+          contracts:
+            - CONTRACTS
+            - NO_OF_CONTRACTS
+          value_lakhs:
+            - VAL_INLAKH
+            - VAL_IN_LAKH
+          open_interest_contracts:
+            - OPEN_INT
+            - OPENINT
+            - OPEN_INTEREST
+            - OI
+          change_in_oi_contracts:
+            - CHG_IN_OI
+            - CHANGE_IN_OI
+            - CHNG_IN_OI
+          lot_size_shares:
+            - LOT_SIZE
+            - LOTSIZE
+            - LOT
+            - LOT_QTY
+      mwpl_combined:
+        identifier: mwpl_combined
+        strategy: discovery
+        cache_subdir: raw/mwpl
+        discovery: reports_index|pattern
+        rate_limit_seconds: 0.6
+        retries: 3
+        timeout_seconds: 30
+        hashing:
+          enabled: true
+          algorithm: sha256
+          manifest_extension: .sha256
+        quarantine_on_unexpected_columns: true
+        column_aliases:
+          trade_date:
+            - TRADE_DATE
+            - TRD_DT
+            - DATE
+          symbol:
+            - SYMBOL
+            - SECURITY
+            - SCRIP
+          mwpl_shares:
+            - MWPL_SHARES
+            - MWPL
+            - MKT_WIDE_POS_LIMIT
+          combined_oi_shares:
+            - COMBINED_OI_SHARES
+            - COMBINED_OI
+            - TOTAL_OI
     oi: bhavcopy_only
     lot_size:
       mode: bhavcopy_daily

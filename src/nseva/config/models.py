@@ -6,30 +6,55 @@ from datetime import date
 from pathlib import Path
 from typing import Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
 
-class UdiffoSourceConfig(BaseModel):
-    """Source definition for the UDiFF FO bhavcopy."""
+class HashingPolicyConfig(BaseModel):
+    """Hashing policy applied to downloaded source artifacts."""
 
     model_config = ConfigDict(extra="allow")
 
-    url_pattern: str
+    enabled: bool = True
+    algorithm: Literal["sha256"] = "sha256"
+    manifest_extension: str = ".sha256"
+
+
+class SourceRegistryEntry(BaseModel):
+    """Single source definition with download and parsing hints."""
+
+    model_config = ConfigDict(extra="allow")
+
+    identifier: str
+    strategy: Literal["url_pattern", "discovery"]
+    cache_subdir: Path
+    url_pattern: Optional[str] = None
+    discovery: Optional[str] = None
     rate_limit_seconds: float = 0.6
     retries: int = Field(default=3, ge=0)
     timeout_seconds: int = Field(default=30, ge=1)
     column_aliases: Dict[str, List[str]] = Field(default_factory=dict)
+    hashing: HashingPolicyConfig = Field(default_factory=HashingPolicyConfig)
+    quarantine_on_unexpected_columns: bool = False
+
+    @model_validator(mode="after")
+    def _validate_strategy(self) -> "SourceRegistryEntry":
+        """Ensure required fields exist for the chosen strategy."""
+
+        if self.strategy == "url_pattern" and not self.url_pattern:
+            raise ValueError("url_pattern is required when strategy='url_pattern'.")
+        if self.strategy == "discovery" and not self.discovery:
+            raise ValueError("discovery is required when strategy='discovery'.")
+        return self
 
 
-class MwplSourceConfig(BaseModel):
-    """Source definition for the combined MWPL daily file."""
+class SourceRegistry(RootModel[Dict[str, SourceRegistryEntry]]):
+    """Collection of all known upstream sources."""
 
-    model_config = ConfigDict(extra="allow")
-
-    discovery: str
-    rate_limit_seconds: float = 0.6
-    retries: int = Field(default=3, ge=0)
-    timeout_seconds: int = Field(default=30, ge=1)
+    def get(self, key: str) -> SourceRegistryEntry:
+        try:
+            return self.root[key]
+        except KeyError as exc:  # pragma: no cover - simple passthrough
+            raise KeyError(f"Source '{key}' not found in registry.") from exc
 
 
 class LotSizeConfig(BaseModel):
@@ -47,10 +72,28 @@ class FuturesSourcesConfig(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    udiff_fo: UdiffoSourceConfig
-    mwpl_combined: MwplSourceConfig
+    registry: SourceRegistry = Field(
+        default_factory=lambda: SourceRegistry.model_validate({})
+    )
     oi: str = "bhavcopy_only"
     lot_size: LotSizeConfig = Field(default_factory=LotSizeConfig)
+
+    def require(self, key: str) -> SourceRegistryEntry:
+        """Return a source definition, raising if missing."""
+
+        return self.registry.get(key)
+
+    @property
+    def udiff_fo(self) -> SourceRegistryEntry:
+        """Convenience accessor for the FUTSTK UDiFF source."""
+
+        return self.require("udiff_fo")
+
+    @property
+    def mwpl_combined(self) -> SourceRegistryEntry:
+        """Convenience accessor for the MWPL/combined OI source."""
+
+        return self.require("mwpl_combined")
 
 
 class WeekdayPolicyConfig(BaseModel):
@@ -162,11 +205,12 @@ __all__ = [
     "FuDataConfig",
     "FuturesLayoutConfig",
     "FuturesSourcesConfig",
+    "HashingPolicyConfig",
     "MwplPolicyConfig",
     "LotSizeConfig",
-    "MwplSourceConfig",
+    "SourceRegistry",
+    "SourceRegistryEntry",
     "RuntimeConfig",
-    "UdiffoSourceConfig",
     "WeekdayPolicyConfig",
     "WindowRuleConfig",
     "WindowsConfig",
