@@ -1,5 +1,58 @@
-# Default configuration scaffold for the FuData pipeline.
-# FUT-002 will populate real defaults sourced from the design documents.
+futures:
+  sheet_name: FuData
+  layout: left_to_right
+  table_spacing_rows: 2
+  windows:
+    dual: true
+    primary:
+      start_rule: prev_1_expiry_plus_1
+      end_rule: current_expiry
+      summary_scope: W1
+    overlap:
+      start_rule: prev_3_expiry_plus_1
+      end_rule: current_expiry
+  expiry_policy:
+    weekday_policy:
+      legacy_weekday: Thursday
+      revised_weekday: Tuesday
+      effective_eod: 2025-08-28
+  sources:
+    udiff_fo:
+      url_pattern: "https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_{YYYY}{MM}{DD}_F_0000.csv.zip"
+      rate_limit_seconds: 0.6
+      retries: 3
+      timeout_seconds: 30
+      column_aliases:
+        value_lakhs:
+          - VAL_INLAKH
+          - VAL_IN_LAKH
+        open_interest_contracts:
+          - OPEN_INT
+          - OPENINT
+    mwpl_combined:
+      discovery: reports_index|pattern
+      rate_limit_seconds: 0.6
+      retries: 3
+      timeout_seconds: 30
+    oi: bhavcopy_only
+    lot_size:
+      mode: bhavcopy_daily
+      planned_upgrade: permitted_lot_size_at_window_start
+      conflict_policy: permitted_wins
+  mwpl_policy:
+    refresh_daily: true
+    use_latest: true
+
+display_rounding:
+  enabled: true
+  digits:
+    prices: 2
+    quantities: 0
+    contracts: 0
 
 runtime:
-  storage_root: "./data"
+  storage_root: ./data
+  symbols:
+    - FEDERALBNK
+  parallelism: 1
+  fail_fast: false
