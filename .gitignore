@@ -11,3 +11,11 @@ wheels/
 
 # Agent files
 agent/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+
+# Data workspace (keep layout placeholders only)
+data/*
+!data/README.md
+!data/**/.gitkeep

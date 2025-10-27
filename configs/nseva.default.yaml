@@ -1,0 +1,5 @@
+# Default configuration scaffold for the FuData pipeline.
+# FUT-002 will populate real defaults sourced from the design documents.
+
+runtime:
+  storage_root: "./data"

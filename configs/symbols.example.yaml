@@ -1,0 +1,5 @@
+# Example symbol configuration for FuData runs.
+# FUT-002 replaces this placeholder with documented defaults.
+
+symbols:
+  - FEDERALBNK
