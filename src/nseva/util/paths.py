@@ -7,7 +7,7 @@ from pathlib import Path
 
 def data_root_from_config(storage_root: str | Path) -> Path:
     """Return the resolved data root."""
-    raise NotImplementedError("Path helpers will be implemented in FUT-004.")
+    return Path(storage_root).expanduser().resolve()
 
 
 __all__ = ["data_root_from_config"]
