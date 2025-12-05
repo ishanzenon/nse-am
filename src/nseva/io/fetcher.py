@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Optional
 
@@ -10,6 +11,19 @@ import requests
 
 from nseva.util.hashing import sha256sum
 from nseva.util.retry import retry
+
+BROWSER_HEADERS: Mapping[str, str] = {
+    "User-Agent": (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    ),
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;"
+        "q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+    "Connection": "keep-alive",
+}
 
 def fetch_file(
     url: str,
@@ -20,6 +34,7 @@ def fetch_file(
     rate_limit_seconds: float | None = None,
     expected_hash: str | None = None,
     manifest_extension: str = ".sha256",
+    headers: Mapping[str, str] | None = None,
 ) -> Path:
     """Download `url` to `dest`, honoring polite access policies.
 
@@ -37,7 +52,16 @@ def fetch_file(
         if rate_limit_seconds:
             time.sleep(rate_limit_seconds)
 
-        response = requests.get(url, stream=True, timeout=timeout_seconds)
+        merged_headers = dict(BROWSER_HEADERS)
+        if headers:
+            merged_headers.update(headers)
+
+        response = requests.get(
+            url,
+            stream=True,
+            timeout=timeout_seconds,
+            headers=merged_headers,
+        )
         if response.status_code == 404:
             raise FileNotFoundError(f"Source not found at {url}")
         response.raise_for_status()
