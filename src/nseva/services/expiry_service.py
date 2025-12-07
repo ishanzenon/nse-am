@@ -80,8 +80,6 @@ def windows_for(
     w3_start = next_trading_day_after(prev3, storage_root=storage_root)
 
     if w3_start > w1_start:
-        pass  # expected
-    else:
         LOGGER.warning("Overlap start not before primary start for %s @ %s", symbol, expiry)
 
     return (w1_start, w3_start, expiry)

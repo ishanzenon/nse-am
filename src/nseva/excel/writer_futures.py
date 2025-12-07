@@ -233,13 +233,13 @@ def _locate_labels(ws: Worksheet) -> dict[str, tuple[int, int]]:
 def _extract_table_headers(
     ws: Worksheet, *, header_row: int, start_col: int, max_cols: int
 ) -> list[tuple[int, int, str]]:
-    """Extract header texts and positions from the template."""
+    """Extract header texts and positions from the template relative to block origin."""
 
     headers: list[tuple[int, int, str]] = []
     for col in range(start_col, start_col + max_cols):
         cell = ws.cell(row=header_row, column=col)
         if isinstance(cell.value, str) and cell.value.strip():
-            headers.append((header_row, col, cell.value.strip()))
+            headers.append((header_row - 1, col - 1, cell.value.strip()))
     return headers
 
 
@@ -286,7 +286,7 @@ def _write_daily_table(
                 continue
             raw_value = header_map[header_text](rec)
             value = _apply_rounding(header_text, raw_value, rounding)
-            ws.cell(row=start_row + row_idx, column=start_col + header_col - 1, value=value)
+            ws.cell(row=start_row + row_idx, column=start_col + header_col, value=value)
 
 
 def _load_gold_for_window(symbol: str, start: date, end: date, *, root: Path) -> pd.DataFrame:
