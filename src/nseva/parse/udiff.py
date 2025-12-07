@@ -44,12 +44,29 @@ def udiff_to_silver_fo(
     alias_map: dict[str, Sequence[str]] = {k: v for k, v in (column_aliases or {}).items()}
     df = pd.read_csv(path, compression="zip")
 
+    columns_upper = {col.upper(): col for col in df.columns}
+    if "TCKRSYMB" in columns_upper and "FININSTRMID" in columns_upper:
+        df = df.drop(columns=[columns_upper["FININSTRMID"]])
+    if "FININSTRMACTLXPRYDT" in columns_upper and "XPRYDT" in columns_upper:
+        df = df.drop(columns=[columns_upper["XPRYDT"]])
+    if "TRADDT" in columns_upper and "BIZDT" in columns_upper:
+        df = df.drop(columns=[columns_upper["BIZDT"]])
+
     rename_map = _build_rename_map(df.columns, alias_map)
     df = df.rename(columns=rename_map)
+    df = df.loc[:, ~df.columns.duplicated()]
 
     missing = [col for col in REQUIRED_COLUMNS if col not in df.columns]
     if missing:
         raise ValueError(f"Missing required columns after alias mapping: {missing}")
+
+    instrument_map = {
+        "STF": FUTSTK_INSTRUMENT,
+        "STO": "OPTSTK",
+        "IDF": "FUTIDX",
+        "IDO": "OPTIDX",
+    }
+    df["instrument"] = df["instrument"].astype(str).str.upper().replace(instrument_map)
 
     df = df[df["instrument"].str.upper() == FUTSTK_INSTRUMENT].copy()
     if df.empty:

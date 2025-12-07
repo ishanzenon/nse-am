@@ -36,52 +36,69 @@ futures:
             - TRD_DT
             - TRADE_DATE
             - TIMESTAMP
+            - TRADDT
+            - BIZDT
           instrument:
             - INSTRUMENT
+            - FININSTRMTP
           symbol:
             - SYMBOL
+            - TCKRSYMB
+            - FININSTRMID
           expiry_date:
             - EXPIRY_DATE
             - EXPIRY_DT
             - EXPIRY
+            - XPRYDT
+            - FININSTRMACTLXPRYDT
           open:
             - OPEN
             - OPEN_PRICE
+            - OPNPRIC
           high:
             - HIGH
             - HIGH_PRICE
+            - HGHPRIC
           low:
             - LOW
             - LOW_PRICE
+            - LWPRIC
           close:
             - CLOSE
             - CLOSE_PRICE
+            - CLSPRIC
           settle_price:
             - SETTLE_PRICE
             - SETTLE_PR
             - SETTL_PRICE
             - SETT_PR
             - SETL_PR
+            - STTLMPRIC
           contracts:
             - CONTRACTS
             - NO_OF_CONTRACTS
+            - TTLTRADGVOL
           value_lakhs:
             - VAL_INLAKH
             - VAL_IN_LAKH
+            - TTLTRFVAL
           open_interest_contracts:
             - OPEN_INT
             - OPENINT
             - OPEN_INTEREST
             - OI
+            - OPNINTRST
           change_in_oi_contracts:
             - CHG_IN_OI
             - CHANGE_IN_OI
             - CHNG_IN_OI
+            - CHNGINOPNINTRST
           lot_size_shares:
             - LOT_SIZE
             - LOTSIZE
             - LOT
             - LOT_QTY
+            - NEWBRDLOTQTY
       mwpl_combined:
         identifier: mwpl_combined
         strategy: discovery
