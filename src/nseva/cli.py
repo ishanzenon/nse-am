@@ -185,8 +185,8 @@ def export_excel(
 
 @app.command()
 def run(
-    from_date: str = typer.Option(..., "--from", help="Start date YYYY-MM-DD"),
-    to_date: str = typer.Option(..., "--to", help="End date YYYY-MM-DD"),
+    from_date: str = typer.Argument(..., help="Start date YYYY-MM-DD"),
+    to_date: str = typer.Argument(..., help="End date YYYY-MM-DD"),
     symbols: Optional[str] = typer.Option(None, help="Comma-separated symbols (default from config)"),
     prefetch_months: int = typer.Option(0, help="Prefetch this many prior months for expiry discovery"),
     sleep_between_days: float = typer.Option(0.0, help="Sleep seconds between days for politeness"),
@@ -239,3 +239,7 @@ def main() -> None:
 
 
 __all__ = ["main", "app"]
+
+
+if __name__ == "__main__":  # pragma: no cover - manual invocation support
+    main()
