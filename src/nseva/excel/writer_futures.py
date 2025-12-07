@@ -324,8 +324,17 @@ def _set_if_exists(
         return
     rel_row, rel_col = labels[label]
     target_row = row + rel_row - 1
-    target_col = col + rel_col - 1 + col_offset
-    anchor_row, anchor_col = _anchor_for_cell(ws, target_row, target_col)
+    target_col = col + rel_col - 1
+
+    merge = _find_merge(ws, target_row, target_col)
+    if merge:
+        dest_row = merge.min_row
+        dest_col = merge.max_col + 1
+    else:
+        dest_row = target_row
+        dest_col = target_col + col_offset
+
+    anchor_row, anchor_col = _anchor_for_cell(ws, dest_row, dest_col)
     ws.cell(row=anchor_row, column=anchor_col, value=value)
 
 
@@ -358,6 +367,15 @@ def _anchor_for_cell(ws: Worksheet, row: int, col: int) -> tuple[int, int]:
         if merge.min_row <= row <= merge.max_row and merge.min_col <= col <= merge.max_col:
             return merge.min_row, merge.min_col
     return row, col
+
+
+def _find_merge(ws: Worksheet, row: int, col: int):
+    """Find the merge range containing a cell, if any."""
+
+    for merge in ws.merged_cells.ranges:
+        if merge.min_row <= row <= merge.max_row and merge.min_col <= col <= merge.max_col:
+            return merge
+    return None
 
 
 def _safe_excel_number(value: object) -> object:
