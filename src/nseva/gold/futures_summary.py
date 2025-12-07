@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from math import floor
+import logging
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
@@ -17,6 +18,8 @@ try:
 except Exception:  # pragma: no cover - allow early imports
     load_config = None  # type: ignore[assignment]
 
+LOGGER = logging.getLogger("nseva")
+
 
 def build_futures_summary(
     symbol: str, expiry: date, *, storage_root: str | Path | None = None
@@ -29,7 +32,11 @@ def build_futures_summary(
         cfg.futures.windows.primary.summary_scope if cfg else "W1"
     )  # default W1 per design
 
-    primary_start, overlap_start, end_date = windows_for(symbol, expiry, storage_root=root)
+    try:
+        primary_start, overlap_start, end_date = windows_for(symbol, expiry, storage_root=root)
+    except Exception as exc:
+        LOGGER.warning("Skipping summary for %s %s: %s", symbol, expiry, exc)
+        return pd.DataFrame(columns=_summary_columns())
     scope_start = primary_start if summary_scope == "W1" else overlap_start
 
     gold_df = _load_gold_days(root, symbol, scope_start, end_date)
